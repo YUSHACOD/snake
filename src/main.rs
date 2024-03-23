@@ -21,27 +21,26 @@ fn main() {
         // Getting the terminal dimensions
         let size = crossterm::terminal::size().expect("Failed to get the dimensions of terminal.");
 
-        let buff_size = crossterm::terminal::WindowSize {
-            rows: size.1,
-            columns: size.0,
-            width: size.0 - 2,
-            height: size.1 - 2,
+        let buffer_size = display::Size {
+            x_axis: (0, size.0),
+            y_axis: (0, size.1),
         };
 
-        // Setting up the terminal
-        window::setup(title, &mut stdout, buff_size);
+        // Setting up the terminal ///////////////////////////////////
+        window::setup(title, &mut stdout, buffer_size);
         //////////////////////////////////////////////////////////////
 
         // Do stuff /////////////////////////////////////////////////
         let (sdr, rcv) = std::sync::mpsc::channel();
-        
+
         let game_size = Size {
             x_axis: (1, size.0 - 1),
             y_axis: (1, size.1 - 1),
         };
 
         let renderer_handle = std::thread::spawn(move || game::start(rcv, game_size));
-        let input_channel = std::thread::spawn(move || event_capturer::start(sdr));
+        let input_channel =
+            std::thread::spawn(move || event_capturer::start(sdr, std::io::stdout()));
 
         let _ = input_channel.join().expect("input_channel_failed");
         renderer_handle.join().expect("renderer_failed");

@@ -1,44 +1,10 @@
 use crate::display::Size;
 use crate::event_capturer::Input;
+use crate::window::make_box_on_screen;
 use crossterm::style;
 use crossterm::{cursor, style::Stylize, QueueableCommand};
 use std::io::Stdout;
 use std::io::{self, Write};
-
-fn make_box_on_screen(
-    stdout: &mut Stdout,
-    (x_start, x_end): (u16, u16),
-    (y_start, y_end): (u16, u16),
-) -> io::Result<()> {
-    for x in x_start..x_end {
-        stdout
-            .queue(cursor::MoveTo(x, y_start))?
-            .queue(style::PrintStyledContent("─".grey()))?
-            .queue(cursor::MoveTo(x, y_end))?
-            .queue(style::PrintStyledContent("─".grey()))?;
-    }
-
-    for y in y_start..y_end {
-        stdout
-            .queue(cursor::MoveTo(x_start, y))?
-            .queue(style::PrintStyledContent("│".grey()))?
-            .queue(cursor::MoveTo(x_end, y))?
-            .queue(style::PrintStyledContent("│".grey()))?;
-    }
-
-    stdout
-        .queue(cursor::MoveTo(x_start, y_start))?
-        .queue(style::PrintStyledContent("┌".grey()))?
-        .queue(cursor::MoveTo(x_end, y_start))?
-        .queue(style::PrintStyledContent("┐".grey()))?
-        .queue(cursor::MoveTo(x_start, y_end))?
-        .queue(style::PrintStyledContent("└".grey()))?
-        .queue(cursor::MoveTo(x_end, y_end))?
-        .queue(style::PrintStyledContent("┘".grey()))?;
-
-    stdout.flush()?;
-    Ok(())
-}
 
 // Just for testing
 fn get_in_string(input: &Input) -> String {
@@ -58,7 +24,6 @@ fn get_in_string(input: &Input) -> String {
 fn display_score_box(stdout: &mut Stdout, size: &Size) -> io::Result<()> {
     let (x_start, x_end) = (size.x_axis.1 - 17, size.x_axis.1 - 1);
     let (y_start, y_end) = (size.y_axis.1 - 3, size.y_axis.1 - 1);
-
     make_box_on_screen(stdout, (x_start, x_end), (y_start, y_end))
 }
 
@@ -70,7 +35,7 @@ fn display_message_box(stdout: &mut Stdout, size: &Size) -> io::Result<()> {
     make_box_on_screen(stdout, (x_start, x_end), (y_start, y_end))
 }
 
-// Game ui Printer
+// Game UI Printer
 pub fn game_display(stdout: &mut Stdout, size: Size) -> io::Result<()> {
     let (x_start, x_end) = (size.x_axis.0, size.x_axis.1 - 1);
     let (y_start, y_end) = (size.y_axis.0, size.y_axis.1 - 4);
@@ -86,7 +51,7 @@ pub fn print_message(stdout: &mut Stdout, size: &(u16, u16), input: &Input) -> i
     stdout
         .queue(cursor::MoveTo(size.0, size.1))?
         .queue(style::PrintStyledContent(
-                format!(" Message : {:10} ", get_in_string(input)).grey(),
+            format!(" Message : {:10} ", get_in_string(input)).grey(),
         ))?;
     stdout.flush()?;
     Ok(())
@@ -97,7 +62,7 @@ pub fn print_score(stdout: &mut Stdout, size: &(u16, u16), score: usize) -> io::
     stdout
         .queue(cursor::MoveTo(size.0, size.1))?
         .queue(style::PrintStyledContent(
-                format!(" Score : {:5} ", score).grey(),
+            format!(" Score : {:5} ", score).grey(),
         ))?;
     stdout.flush()?;
     Ok(())

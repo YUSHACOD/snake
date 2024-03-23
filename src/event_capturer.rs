@@ -1,6 +1,8 @@
+use crate::window;
+use std::io::Stdout;
 use std::sync::mpsc::{SendError, Sender};
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone)]
 pub enum Input {
     Start,
     Pause,
@@ -12,13 +14,17 @@ pub enum Input {
     Bs,
 }
 
-pub fn start(sdr: Sender<Input>) -> Result<(), SendError<Input>> {
+pub fn start(sdr: Sender<Input>, mut stdout: Stdout) -> Result<(), SendError<Input>> {
     let mut input: Input;
     let c_term = console::Term::stdout();
 
     loop {
         // I love this match
-        input = match c_term.read_key().expect("somethings wrong") {
+        input = match c_term
+            .read_key()
+            .inspect_err(|_| window::clean_up(&mut stdout))
+            .expect("somethings wrong")
+        {
             console::Key::Char('q') => Input::Quit,
             console::Key::Char('h') | console::Key::ArrowLeft => Input::Left,
             console::Key::Char('l') | console::Key::ArrowRight => Input::Right,

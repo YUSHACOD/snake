@@ -19,8 +19,8 @@ pub fn _display(stdout: &mut Stdout, buffers: &mut Buffers) -> io::Result<()> {
     let (y_start, y_end) = buffers.size.y_axis;
     let (current, previous) = (buffers.frame % 2, (buffers.frame + 1) % 2);
 
-    for y in y_start..=y_end {
-        for x in x_start..=x_end {
+    for y in y_start..y_end {
+        for x in x_start..x_end {
             let (y, x) = (y as usize, x as usize); // Typcasting for indexing
 
             if buffers.matrix[y][x][current] != buffers.matrix[y][x][previous] {
