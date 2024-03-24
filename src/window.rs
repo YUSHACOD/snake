@@ -12,7 +12,7 @@ pub fn make_box_on_screen(
     (x_start, x_end): (u16, u16),
     (y_start, y_end): (u16, u16),
 ) -> io::Result<()> {
-    for x in x_start..x_end {
+    for x in x_start..=x_end {
         stdout
             .queue(cursor::MoveTo(x, y_start))?
             .queue(style::PrintStyledContent("─".grey()))?
@@ -20,7 +20,7 @@ pub fn make_box_on_screen(
             .queue(style::PrintStyledContent("─".grey()))?;
     }
 
-    for y in y_start..y_end {
+    for y in y_start..=y_end {
         stdout
             .queue(cursor::MoveTo(x_start, y))?
             .queue(style::PrintStyledContent("│".grey()))?
@@ -56,7 +56,7 @@ fn setup_borders(title: String, stdout: &mut Stdout, (xmax, ymax): (u16, u16)) -
     Ok(())
 }
 
-pub fn setup(title: String, stdout: &mut Stdout, buff_size: display::Size) {
+pub fn setup(title: String, stdout: &mut Stdout, buff_size: &display::Size) {
     // Terminal Setup
     execute!(stdout, EnterAlternateScreen).expect("Cannot enter alternate screen.");
     execute!(stdout, cursor::Hide).expect("Failed to Hide the cursor");

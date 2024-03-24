@@ -22,23 +22,23 @@ fn get_in_string(input: &Input) -> String {
 
 // Score Box
 fn display_score_box(stdout: &mut Stdout, size: &Size) -> io::Result<()> {
-    let (x_start, x_end) = (size.x_axis.1 - 17, size.x_axis.1 - 1);
-    let (y_start, y_end) = (size.y_axis.1 - 3, size.y_axis.1 - 1);
+    let (x_start, x_end) = (size.x_axis.1 - 17, size.x_axis.1);
+    let (y_start, y_end) = (size.y_axis.1 - 2, size.y_axis.1);
     make_box_on_screen(stdout, (x_start, x_end), (y_start, y_end))
 }
 
 // Message Box
 fn display_message_box(stdout: &mut Stdout, size: &Size) -> io::Result<()> {
     let (x_start, x_end) = (size.x_axis.0, size.x_axis.1 - 18);
-    let (y_start, y_end) = (size.y_axis.1 - 3, size.y_axis.1 - 1);
+    let (y_start, y_end) = (size.y_axis.1 - 2, size.y_axis.1);
 
     make_box_on_screen(stdout, (x_start, x_end), (y_start, y_end))
 }
 
 // Game UI Printer
 pub fn game_display(stdout: &mut Stdout, size: Size) -> io::Result<()> {
-    let (x_start, x_end) = (size.x_axis.0, size.x_axis.1 - 1);
-    let (y_start, y_end) = (size.y_axis.0, size.y_axis.1 - 4);
+    let (x_start, x_end) = (size.x_axis.0, size.x_axis.1);
+    let (y_start, y_end) = (size.y_axis.0, size.y_axis.1 - 3);
 
     make_box_on_screen(stdout, (x_start, x_end), (y_start, y_end))?;
     display_score_box(stdout, &size)?;

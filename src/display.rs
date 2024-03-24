@@ -14,18 +14,18 @@ pub struct Buffers {
     pub frame: usize,
 }
 
-pub fn _display(stdout: &mut Stdout, buffers: &mut Buffers) -> io::Result<()> {
+pub fn display(stdout: &mut Stdout, buffers: &mut Buffers, (x_offset, y_offset): (usize, usize)) -> io::Result<()> {
     let (x_start, x_end) = buffers.size.x_axis;
     let (y_start, y_end) = buffers.size.y_axis;
     let (current, previous) = (buffers.frame % 2, (buffers.frame + 1) % 2);
 
-    for y in y_start..y_end {
-        for x in x_start..x_end {
-            let (y, x) = (y as usize, x as usize); // Typcasting for indexing
+    for y in y_start..=y_end {
+        for x in x_start..=x_end {
+            let (y, x) = (y as usize - y_offset, x as usize - x_offset); // Typcasting for indexing
 
             if buffers.matrix[y][x][current] != buffers.matrix[y][x][previous] {
                 stdout
-                    .queue(cursor::MoveTo(x as u16, y as u16))?
+                    .queue(cursor::MoveTo((x + x_offset) as u16, (y + y_offset) as u16))?
                     .queue(style::Print(buffers.matrix[y][x][current].green()))?;
             }
         }
