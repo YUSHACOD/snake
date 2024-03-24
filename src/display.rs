@@ -14,7 +14,7 @@ pub struct Buffers {
     pub frame: usize,
 }
 
-pub fn _display(stdout: &mut Stdout, buffers: &mut Buffers) -> io::Result<()> {
+pub fn display(stdout: &mut Stdout, buffers: &Buffers) -> io::Result<()> {
     let (x_start, x_end) = buffers.size.x_axis;
     let (y_start, y_end) = buffers.size.y_axis;
     let (current, previous) = (buffers.frame % 2, (buffers.frame + 1) % 2);

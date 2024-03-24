@@ -1,53 +1,118 @@
-use crate::display::Size;
+use crate::cell_automata::*;
+use crate::display::*;
 use crate::event_capturer::Input;
+use crate::window::clean_up;
 use crate::{game_display::*, window};
 use std::io::{stdout, Stdout};
 use std::sync::mpsc::Receiver;
-use std::u16;
+use std::time::Duration;
+use std::{u16, usize};
 
-fn message_score_box_testing(
+fn _message_score_box_testing(
     rcv: Receiver<Input>,
     stdout: &mut Stdout,
     size: Size,
-    message_pos: (u16, u16),
-    score_pos: (u16, u16),
+    gen_pos: (u16, u16),
 ) {
     let mut default = Input::Bs;
     let mut input: Input;
-    let mut score: usize = 0;
 
-    game_display(stdout, size)
+    game_window_display(stdout, size)
         .inspect_err(|_| window::clean_up(stdout))
         .expect("Unable to display game borders");
-    print_score(stdout, &score_pos, 0)
+    display_gen(stdout, &gen_pos, 0)
         .inspect_err(|_| window::clean_up(stdout))
-        .expect("Unable to print score in score box.");
-    print_message(stdout, &message_pos, &default)
-        .inspect_err(|_| window::clean_up(stdout))
-        .expect("Unable to display borders");
+        .expect("Error displaying gen.");
 
     loop {
         input = rcv.recv().unwrap_or(default.clone());
-        print_score(stdout, &score_pos, score).expect("Unable to print score.");
-        score += 1;
 
         if default != input {
             if let Input::Quit = input {
                 break;
             }
 
-            print_message(stdout, &message_pos, &input)
+            display_gen(stdout, &gen_pos, 0)
                 .inspect_err(|_| window::clean_up(stdout))
-                .expect("Failed to print message in message box");
+                .expect("Error displaying gen.");
             default = input;
         }
     }
 }
 
-pub fn start(rcv: Receiver<Input>, size: Size) {
-    let message_pos: (u16, u16) = (size.x_axis.0 + 2, size.y_axis.1 - 2);
-    let score_pos: (u16, u16) = (size.x_axis.1 - 16, size.y_axis.1 - 2);
+pub fn start(rcv: Receiver<Input>, size: Size, alive_cells: usize, delay: Duration) {
     let mut stdout = stdout();
+    let gen_pos: (u16, u16) = (size.x_axis.0 + 3, size.y_axis.1 - 1);
 
-    message_score_box_testing(rcv, &mut stdout, size, message_pos, score_pos)
+    // Input handling
+    let default = Input::Bs;
+    let mut input: Input;
+
+    // Cells
+    let width = (size.x_axis.1 - size.x_axis.0 + 1) as usize;
+    let height = (size.y_axis.1 - size.y_axis.0 + 1) as usize;
+
+    let cell_buffer_size = Size {
+        x_axis: (size.x_axis.0 + 1, size.x_axis.1 - 1),
+        y_axis: (size.y_axis.0 + 1, size.y_axis.1 - 1),
+    };
+    let mut cell_buffer = Buffers {
+        matrix: vec![vec![[' '; 2]; width]; height],
+        size: cell_buffer_size,
+        frame: 1,
+    };
+
+    // Setting the first gen
+    first_gen(&mut cell_buffer.matrix, alive_cells, (width, height));
+
+    // Setting game window
+    display_gen(&mut stdout, &gen_pos, cell_buffer.frame)
+        .inspect_err(|_| clean_up(&mut stdout))
+        .expect("Failed to display gen");
+    game_window_display(&mut stdout, size)
+        .inspect_err(|_| window::clean_up(&mut stdout))
+        .expect("Unable to display game borders");
+
+    // Main Automata Loop
+    while cell_buffer.frame < usize::MAX {
+        input = rcv.try_recv().unwrap_or(default.clone());
+        match input {
+            Input::Quit => break,
+            Input::Pause => {
+                if let None = block(&rcv) {
+                    break;
+                }
+            }
+            _ => (),
+        };
+
+        next_generation(&mut cell_buffer.matrix, cell_buffer.frame, (width, height));
+        std::thread::sleep(delay);
+
+        display_gen(&mut stdout, &gen_pos, cell_buffer.frame)
+            .inspect_err(|_| clean_up(&mut stdout))
+            .expect("Failed to display gen");
+        display(&mut stdout, &cell_buffer)
+            .inspect_err(|_| clean_up(&mut stdout))
+            .expect("Failed to display automata");
+
+        cell_buffer.frame += 1;
+    }
+}
+
+fn block(rcv: &Receiver<Input>) -> Option<()> {
+    let mut result = Some(());
+    loop {
+        match rcv.recv().unwrap_or(Input::Bs) {
+            Input::Start | Input::Pause => {
+                break;
+            }
+            Input::Quit => {
+                result = None;
+                break;
+            }
+            _ => {}
+        }
+    }
+    result
 }
