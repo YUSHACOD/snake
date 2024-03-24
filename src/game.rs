@@ -1,6 +1,6 @@
 use crate::display::{self, Buffers, Size};
 use crate::event_capturer::Input;
-use crate::snake::{create_next_frame, get_init_snake, GameState};
+use crate::snake::{create_next_frame, get_init_snake, Direction, GameState};
 use crate::window::clean_up;
 use crate::{game_display::*, window};
 use std::collections::VecDeque;
@@ -70,7 +70,7 @@ pub fn start(rcv: Receiver<Input>, size: Size, delay: Duration) {
     // Input
     let default = Input::Bs;
     let mut input: Input;
- 
+
     // Message and Score Position
     let message_pos: (u16, u16) = (size.x_axis.0 + 1, size.y_axis.1 - 1);
     let score_pos: (u16, u16) = (size.x_axis.1 - 16, size.y_axis.1 - 1);
@@ -91,9 +91,9 @@ pub fn start(rcv: Receiver<Input>, size: Size, delay: Duration) {
 
     let mut game_state = GameState {
         snake: VecDeque::new(),
+        direction: Direction::Right,
         score: 0,
     };
-
 
     // Initial Setup
     game_display(&mut stdout, size)
