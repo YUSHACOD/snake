@@ -79,7 +79,7 @@ pub fn start(rcv: Receiver<Input>, size: Size, alive_cells: usize, delay: Durati
         match input {
             Input::Quit => break,
             Input::Pause => {
-                if let None = block(&rcv) {
+                if block(&rcv).is_none() {
                     break;
                 }
             }

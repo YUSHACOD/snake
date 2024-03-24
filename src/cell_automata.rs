@@ -24,7 +24,7 @@ pub fn next_generation(cells: &mut Vec<Vec<[char; 2]>>, gen: usize, (xmax, ymax)
     let (current, previous) = (gen % 2, (gen + 1) % 2);
     for y in 0..ymax {
         for x in 0..xmax {
-            let alive_neighbors = alive_neighbors(&cells, gen, (y, x), (xmax, ymax));
+            let alive_neighbors = alive_neighbors(cells, gen, (y, x), (xmax, ymax));
             cells[y][x][current] = if cells[y][x][previous] == ALIVE {
                 // for alive
                 match alive_neighbors {
