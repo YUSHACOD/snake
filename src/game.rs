@@ -1,9 +1,9 @@
 use crate::display::{self, Buffers, Size};
 use crate::event_capturer::Input;
-use crate::snake::{create_next_frame, get_init_snake, Direction, GameState};
+use crate::snake::*;
 use crate::window::clean_up;
 use crate::{game_display::*, window};
-use std::collections::VecDeque;
+use std::collections::{HashSet, VecDeque};
 use std::io::{stdout, Stdout};
 use std::sync::mpsc::Receiver;
 use std::time::Duration;
@@ -93,6 +93,7 @@ pub fn start(rcv: Receiver<Input>, size: Size, delay: Duration) {
         snake: VecDeque::new(),
         direction: Direction::Right,
         score: 0,
+        food: (0, 0),
     };
 
     // Initial Setup
@@ -106,11 +107,25 @@ pub fn start(rcv: Receiver<Input>, size: Size, delay: Duration) {
         .inspect_err(|_| window::clean_up(&mut stdout))
         .expect("Unable to display borders");
 
+    // Getting food ready
+    let mut food_points: HashSet<(usize, usize)> = HashSet::new();
+    for y in screen_buffer.size.y_axis.0..=screen_buffer.size.y_axis.1 {
+        for x in screen_buffer.size.x_axis.0..=screen_buffer.size.x_axis.1 {
+            food_points.insert((x as usize, y as usize));
+        }
+    }
+
     // Getting initial snake in game_state and screen_buffer
-    get_init_snake(&mut game_state, &mut screen_buffer);
+    get_init_snake(&mut game_state, &mut screen_buffer, &mut food_points);
     display::display(&mut stdout, &mut screen_buffer, (2, 2))
         .inspect_err(|_| clean_up(&mut stdout))
         .expect("Failed to display screen_buffer");
+    display_food(
+        &mut stdout,
+        &(game_state.food.0 as u16, game_state.food.1 as u16),
+    )
+    .inspect_err(|_| clean_up(&mut stdout))
+    .expect("Failed printing food");
 
     // Initialy stopping for user to start
     if block(&rcv).is_none() {
@@ -135,7 +150,13 @@ pub fn start(rcv: Receiver<Input>, size: Size, delay: Duration) {
         };
 
         // New buffer
-        create_next_frame(&mut screen_buffer, &mut game_state, &input, (width, height));
+        create_next_frame(
+            &mut screen_buffer,
+            &mut game_state,
+            &input,
+            (width, height),
+            &mut food_points,
+        );
 
         // Displaying the screen_buffer and score
         print_score(&mut stdout, &score_pos, game_state.score)
@@ -145,6 +166,12 @@ pub fn start(rcv: Receiver<Input>, size: Size, delay: Duration) {
         display::display(&mut stdout, &mut screen_buffer, (2, 2))
             .inspect_err(|_| clean_up(&mut stdout))
             .expect("Failed to display screen_buffer");
+        display_food(
+            &mut stdout,
+            &(game_state.food.0 as u16, game_state.food.1 as u16),
+        )
+        .inspect_err(|_| clean_up(&mut stdout))
+        .expect("Failed printing food");
         std::thread::sleep(delay);
     }
 }

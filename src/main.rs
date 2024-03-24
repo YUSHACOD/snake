@@ -7,6 +7,8 @@ mod window;
 
 use std::time::Duration;
 
+use window::clean_up;
+
 use crate::display::Size;
 
 fn main() {
@@ -43,11 +45,14 @@ fn main() {
         };
 
         let renderer_handle = std::thread::spawn(move || game::start(rcv, game_size, delay));
-        let input_channel =
-            std::thread::spawn(move || event_capturer::start(sdr, std::io::stdout()));
+        event_capturer::start(sdr, &mut stdout)
+            .inspect_err(|_| clean_up(&mut stdout))
+            .expect("Fucked Input");
 
-        let _ = input_channel.join().expect("input_channel_failed");
-        renderer_handle.join().expect("renderer_failed");
+        renderer_handle
+            .join()
+            .inspect_err(|_| clean_up(&mut stdout))
+            .expect("renderer_failed");
         //////////////////////////////////////////////////////////////
 
         // Cleaning up the terminal //////////////////////////////////

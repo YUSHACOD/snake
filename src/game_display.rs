@@ -67,3 +67,12 @@ pub fn print_score(stdout: &mut Stdout, size: &(u16, u16), score: usize) -> io::
     stdout.flush()?;
     Ok(())
 }
+
+// Food printer
+pub fn display_food(stdout: &mut Stdout, size: &(u16, u16)) -> io::Result<()> {
+    stdout
+        .queue(cursor::MoveTo(size.0, size.1))?
+        .queue(style::PrintStyledContent('*'.white()))?;
+    stdout.flush()?;
+    Ok(())
+}

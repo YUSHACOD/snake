@@ -14,7 +14,7 @@ pub enum Input {
     Bs,
 }
 
-pub fn start(sdr: Sender<Input>, mut stdout: Stdout) -> Result<(), SendError<Input>> {
+pub fn start(sdr: Sender<Input>, stdout: &mut Stdout) -> Result<(), SendError<Input>> {
     let mut input: Input;
     let c_term = console::Term::stdout();
 
@@ -22,7 +22,7 @@ pub fn start(sdr: Sender<Input>, mut stdout: Stdout) -> Result<(), SendError<Inp
         // I love this match
         input = match c_term
             .read_key()
-            .inspect_err(|_| window::clean_up(&mut stdout))
+            .inspect_err(|_| window::clean_up(stdout))
             .expect("somethings wrong")
         {
             console::Key::Char('q') => Input::Quit,
