@@ -5,6 +5,7 @@ use crossterm::style;
 use crossterm::{cursor, style::Stylize, QueueableCommand};
 use std::io::Stdout;
 use std::io::{self, Write};
+use std::isize;
 
 // Just for testing
 fn get_in_string(input: &Input) -> String {
@@ -69,9 +70,17 @@ pub fn print_score(stdout: &mut Stdout, size: &(u16, u16), score: usize) -> io::
 }
 
 // Food printer
-pub fn display_food(stdout: &mut Stdout, size: &(u16, u16)) -> io::Result<()> {
+pub fn display_food(
+    stdout: &mut Stdout,
+    size: &(u16, u16),
+    (x_offset, y_offset): (isize, isize), // This offset is equivalent to the screen offset set in
+                                          // display.rs
+) -> io::Result<()> {
     stdout
-        .queue(cursor::MoveTo(size.0, size.1))?
+        .queue(cursor::MoveTo(
+            (size.0 as isize + x_offset) as u16,
+            (size.1 as isize + y_offset) as u16,
+        ))?
         .queue(style::PrintStyledContent('*'.white()))?;
     stdout.flush()?;
     Ok(())

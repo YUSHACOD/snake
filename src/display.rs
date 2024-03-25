@@ -14,7 +14,12 @@ pub struct Buffers {
     pub frame: usize,
 }
 
-pub fn display(stdout: &mut Stdout, buffers: &mut Buffers, (x_offset, y_offset): (usize, usize)) -> io::Result<()> {
+pub fn display(
+    stdout: &mut Stdout,
+    buffers: &mut Buffers,
+    (x_offset, y_offset): (usize, usize), // This offset is need for proper positioning of screen
+                                          // buffer on terminal screen
+) -> io::Result<()> {
     let (x_start, x_end) = buffers.size.x_axis;
     let (y_start, y_end) = buffers.size.y_axis;
     let (current, previous) = (buffers.frame % 2, (buffers.frame + 1) % 2);

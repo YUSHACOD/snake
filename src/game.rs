@@ -123,6 +123,7 @@ pub fn start(rcv: Receiver<Input>, size: Size, delay: Duration) {
     display_food(
         &mut stdout,
         &(game_state.food.0 as u16, game_state.food.1 as u16),
+        (2, 2),
     )
     .inspect_err(|_| clean_up(&mut stdout))
     .expect("Failed printing food");
@@ -169,6 +170,7 @@ pub fn start(rcv: Receiver<Input>, size: Size, delay: Duration) {
         display_food(
             &mut stdout,
             &(game_state.food.0 as u16, game_state.food.1 as u16),
+            (2, 2),
         )
         .inspect_err(|_| clean_up(&mut stdout))
         .expect("Failed printing food");
