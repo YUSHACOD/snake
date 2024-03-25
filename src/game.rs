@@ -109,9 +109,9 @@ pub fn start(rcv: Receiver<Input>, size: Size, delay: Duration) {
 
     // Getting food ready
     let mut food_points: HashSet<(usize, usize)> = HashSet::new();
-    for y in screen_buffer.size.y_axis.0..=screen_buffer.size.y_axis.1 {
-        for x in screen_buffer.size.x_axis.0..=screen_buffer.size.x_axis.1 {
-            food_points.insert((x as usize, y as usize));
+    for y in 0..height {
+        for x in 0..width {
+            food_points.insert((x, y));
         }
     }
 

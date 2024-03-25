@@ -5,20 +5,26 @@ mod game_display;
 mod snake;
 mod window;
 
-use std::time::Duration;
-
-use window::clean_up;
-
 use crate::display::Size;
+use std::time::Duration;
+use window::clean_up;
 
 fn main() {
     let args = std::env::args().skip(1).collect::<Vec<String>>();
 
-    if args.len() != 2 {
-        eprintln!("Arguments required are: \n<name> (1-30) \t<delay> (80-750 millis)");
+    if args.len() != 1 || args[0] == "help" {
+        eprintln!("Arguments required are: \t<delay> (80-750 millis)");
+        eprintln!("Inputs : ");
+        eprintln!("\tSpace_Bar\t->\tPause / Start");
+        eprintln!("\tEnter    \t->\tStart");
+        eprintln!("\th / Left \t->\tLeft");
+        eprintln!("\tj / Down \t->\tDown");
+        eprintln!("\tk / Up   \t->\tUp");
+        eprintln!("\tl / Right\t->\tRight");
+        eprintln!("\tq        \t->\tQuit");
     } else {
-        let title = args[0].to_string();
-        let delay = Duration::from_millis(args[1].parse().unwrap_or(100));
+        let title = "SNAKE".to_string();
+        let delay = Duration::from_millis(args[0].parse().unwrap_or(100));
 
         // Setup /////////////////////////////////////////////////////
         // This should be the only instance

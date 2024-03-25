@@ -119,7 +119,7 @@ pub fn create_next_frame(
         }
     }
 
-    // Setting new snake Position
+    // Setting new snake head position
     let snake_head = game_state.snake[0];
     let new_head = get_new_head(snake_head, game_state, input, (width, height));
     game_state.snake.push_front(new_head);
