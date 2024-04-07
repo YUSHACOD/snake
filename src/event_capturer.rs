@@ -19,7 +19,6 @@ pub fn start(sdr: Sender<Input>, stdout: &mut Stdout) -> Result<(), SendError<In
     let c_term = console::Term::stdout();
 
     loop {
-        // I love this match
         input = match c_term
             .read_key()
             .inspect_err(|_| window::clean_up(stdout))

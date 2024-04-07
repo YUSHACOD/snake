@@ -6,7 +6,7 @@ use crate::{game_display::*, window};
 use std::collections::{HashSet, VecDeque};
 use std::io::{stdout, Stdout};
 use std::sync::mpsc::Receiver;
-use std::time::Duration;
+use std::time::{Duration, SystemTime};
 use std::usize;
 
 fn _message_score_box_testing(
@@ -135,6 +135,9 @@ pub fn start(rcv: Receiver<Input>, size: Size, delay: Duration) {
 
     // Game Loop
     while screen_buffer.frame < usize::MAX {
+        // Start time of the game_loop
+        let start = std::time::SystemTime::now();
+
         // Check for quit of pause
         input = rcv.try_recv().unwrap_or(default.clone());
         print_message(&mut stdout, &message_pos, &input)
@@ -174,6 +177,10 @@ pub fn start(rcv: Receiver<Input>, size: Size, delay: Duration) {
         )
         .inspect_err(|_| clean_up(&mut stdout))
         .expect("Failed printing food");
-        std::thread::sleep(delay);
+
+        std::thread::sleep(
+            // Finding out how much time to sleep
+            delay - (SystemTime::now().duration_since(start)).unwrap_or(Duration::from_millis(0)),
+        );
     }
 }
