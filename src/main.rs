@@ -51,7 +51,7 @@ fn main() {
         };
 
         let renderer_handle = std::thread::spawn(move || game::start(rcv, game_size, delay));
-        event_capturer::start(sdr, &mut stdout)
+        event_capturer::start(sdr)
             .inspect_err(|_| clean_up(&mut stdout))
             .expect("Fucked Input");
 

@@ -136,7 +136,7 @@ pub fn start(rcv: Receiver<Input>, size: Size, delay: Duration) {
     // Game Loop
     while screen_buffer.frame < usize::MAX {
         // Start time of the game_loop
-        let start = std::time::SystemTime::now();
+        let mut start = std::time::SystemTime::now();
 
         // Check for quit of pause
         input = rcv.try_recv().unwrap_or(default.clone());
@@ -149,6 +149,7 @@ pub fn start(rcv: Receiver<Input>, size: Size, delay: Duration) {
                 if block(&rcv).is_none() {
                     break;
                 }
+                start = std::time::SystemTime::now(); // Getting new start after stop
             }
             _ => (),
         };
