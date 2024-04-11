@@ -20,43 +20,76 @@ pub struct GameState {
     pub food: (usize, usize),
 }
 
-pub fn get_init_snake(
-    game_state: &mut GameState,
-    screen_buffer: &mut Buffers,
-    food_points: &mut HashSet<(usize, usize)>,
-) {
-    // Initial snake at the middle of the frame
-    let snake_start = (
-        screen_buffer.size.x_axis.1 / 2 - 3,
-        screen_buffer.size.y_axis.1 / 2,
-    );
-    for i in 0..5 {
-        // Snake will be of length 5
-        game_state
-            .snake
-            .push_front(((snake_start.0 + i) as usize, (snake_start.1) as usize));
+impl GameState {
+    fn set_food(&mut self, food_points: &mut HashSet<(usize, usize)>) {
+        let mut rnd = WyRand::new();
+        for x in self.snake.iter() {
+            food_points.take(x);
+        }
+
+        let possible_food_points: Vec<(usize, usize)> = food_points.clone().into_iter().collect();
+        let random_index = rnd.generate_range(0..(possible_food_points.len()));
+
+        self.food = possible_food_points[random_index];
+
+        for x in self.snake.iter() {
+            food_points.insert(*x);
+        }
     }
 
-    for pos in game_state.snake.iter() {
-        screen_buffer.matrix[pos.1][pos.0][0] = SNAKE_CHAR;
+    pub fn get_init_snake(
+        &mut self,
+        screen_buffer: &mut Buffers,
+        food_points: &mut HashSet<(usize, usize)>,
+    ) {
+        // Initial snake at the middle of the frame
+        let snake_start = (
+            screen_buffer.size.x_axis.1 / 2 - 3,
+            screen_buffer.size.y_axis.1 / 2,
+        );
+        for i in 0..5 {
+            // Snake will be of length 5
+            self.snake
+                .push_front(((snake_start.0 + i) as usize, (snake_start.1) as usize));
+        }
+
+        for pos in self.snake.iter() {
+            screen_buffer.matrix[pos.1][pos.0][0] = SNAKE_CHAR;
+        }
+        self.set_food(food_points);
     }
 
-    set_food(game_state, food_points);
-}
-
-fn set_food(game_state: &mut GameState, food_points: &mut HashSet<(usize, usize)>) {
-    let mut rnd = WyRand::new();
-    for x in game_state.snake.iter() {
-        food_points.take(x);
+    fn get_new_head(
+        &mut self,
+        head: (usize, usize),
+        input: &Input,
+        (width, height): (usize, usize),
+    ) -> (usize, usize) {
+        let prev_direction = self.direction.clone();
+        self.direction = input_to_direction(input, &prev_direction).unwrap_or(prev_direction);
+        match self.direction {
+            Direction::Up => (
+                head.0,
+                ((head.1 as isize) - 1 + height as isize) as usize % height,
+            ),
+            Direction::Down => (head.0, (head.1 + 1) % height),
+            Direction::Left => (
+                (head.0 as isize - 1 + width as isize) as usize % width,
+                head.1,
+            ),
+            Direction::Right => ((head.0 + 1) % width, head.1),
+        }
     }
 
-    let possible_food_points: Vec<(usize, usize)> = food_points.clone().into_iter().collect();
-    let random_index = rnd.generate_range(0..(possible_food_points.len()));
+    fn is_head_colliding_with_food(&self, new_head: &(usize, usize)) -> bool {
+        new_head.0 == self.food.0 && new_head.1 == self.food.1
+    }
 
-    game_state.food = possible_food_points[random_index];
-
-    for x in game_state.snake.iter() {
-        food_points.insert(*x);
+    fn is_head_colliding_with_snake(&self, new_head: &(usize, usize)) -> bool {
+        match self.snake.binary_search(new_head) {
+            Ok(_) => true,
+            Err(_) => false,
+        }
     }
 }
 
@@ -82,35 +115,13 @@ fn input_to_direction(input: &Input, prev_direction: &Direction) -> Option<Direc
     }
 }
 
-fn get_new_head(
-    head: (usize, usize),
-    game_state: &mut GameState,
-    input: &Input,
-    (width, height): (usize, usize),
-) -> (usize, usize) {
-    let prev_direction = game_state.direction.clone();
-    game_state.direction = input_to_direction(input, &prev_direction).unwrap_or(prev_direction);
-    match game_state.direction {
-        Direction::Up => (
-            head.0,
-            ((head.1 as isize) - 1 + height as isize) as usize % height,
-        ),
-        Direction::Down => (head.0, (head.1 + 1) % height),
-        Direction::Left => (
-            (head.0 as isize - 1 + width as isize) as usize % width,
-            head.1,
-        ),
-        Direction::Right => ((head.0 + 1) % width, head.1),
-    }
-}
-
 pub fn create_next_frame(
     screen_buffer: &mut Buffers,
     game_state: &mut GameState,
     input: &Input,
     (width, height): (usize, usize),
     food_points: &mut HashSet<(usize, usize)>,
-) {
+) -> bool {
     screen_buffer.frame += 1;
     let (current, previous) = (screen_buffer.frame % 2, (screen_buffer.frame + 1) % 2);
     for y in 0..height {
@@ -121,12 +132,19 @@ pub fn create_next_frame(
 
     // Setting new snake head position
     let snake_head = game_state.snake[0];
-    let new_head = get_new_head(snake_head, game_state, input, (width, height));
+    let new_head = game_state.get_new_head(snake_head, input, (width, height));
+
+    // Checking for Snake to Snake collision
+    if game_state.is_head_colliding_with_snake(&new_head) {
+        return false;
+    }
+
+    // Adding head if no collision with self
     game_state.snake.push_front(new_head);
 
     // Checking for food collision
-    if (new_head.0 == game_state.food.0) && (new_head.1 == game_state.food.1) {
-        set_food(game_state, food_points); // new food generation
+    if game_state.is_head_colliding_with_food(&new_head) {
+        game_state.set_food(food_points); // new food generation
         game_state.score += 1;
     } else {
         let trail = game_state.snake.pop_back().unwrap();
@@ -136,4 +154,5 @@ pub fn create_next_frame(
     for pos in game_state.snake.iter() {
         screen_buffer.matrix[pos.1][pos.0][current] = SNAKE_CHAR;
     }
+    true
 }

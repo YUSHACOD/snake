@@ -1,25 +1,10 @@
 use crate::display::Size;
-use crate::event_capturer::Input;
 use crate::window::make_box_on_screen;
 use crossterm::style;
 use crossterm::{cursor, style::Stylize, QueueableCommand};
 use std::io::Stdout;
 use std::io::{self, Write};
 use std::isize;
-
-// Just for testing
-fn get_in_string(input: &Input) -> String {
-    match input {
-        Input::Quit => "Quit".to_string(),
-        Input::Up => "Up".to_string(),
-        Input::Down => "Down".to_string(),
-        Input::Left => "Left".to_string(),
-        Input::Right => "Right".to_string(),
-        Input::Start => "Start".to_string(),
-        Input::Pause => "Pause".to_string(),
-        Input::Bs => "Bs".to_string(),
-    }
-}
 
 // Score Box
 fn display_score_box(stdout: &mut Stdout, size: &Size) -> io::Result<()> {
@@ -48,11 +33,11 @@ pub fn game_display(stdout: &mut Stdout, size: Size) -> io::Result<()> {
 }
 
 // Message printer
-pub fn print_message(stdout: &mut Stdout, size: &(u16, u16), input: &Input) -> io::Result<()> {
+pub fn print_message(stdout: &mut Stdout, size: &(u16, u16), message: String) -> io::Result<()> {
     stdout
         .queue(cursor::MoveTo(size.0, size.1))?
         .queue(style::PrintStyledContent(
-            format!(" Message : {:10} ", get_in_string(input)).grey(),
+            format!(" Message : {:10} ", message).grey(),
         ))?;
     stdout.flush()?;
     Ok(())

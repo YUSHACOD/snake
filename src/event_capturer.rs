@@ -33,6 +33,19 @@ impl Input {
             _ => Input::Bs,
         }
     }
+
+    pub fn to_string(&self) -> String {
+        match self {
+            Input::Quit => "Quit".to_string(),
+            Input::Up => "Up".to_string(),
+            Input::Down => "Down".to_string(),
+            Input::Left => "Left".to_string(),
+            Input::Right => "Right".to_string(),
+            Input::Start => "Start".to_string(),
+            Input::Pause => "Pause".to_string(),
+            Input::Bs => "Bs".to_string(),
+        }
+    }
 }
 
 pub fn start(sdr: Sender<Input>) -> Result<(), SendError<Input>> {
@@ -63,15 +76,15 @@ pub fn start(sdr: Sender<Input>) -> Result<(), SendError<Input>> {
             _ => Input::Bs,
         };
 
-        if let Input::Quit = input {
-            sdr.send(input)?;
-            break;
-        }
-
-        if let Input::Bs = input {
-        } else if input != prev {
-            sdr.send(input.clone())?;
-        }
+        match input.clone() {
+            Input::Quit => {
+                sdr.send(input)?;
+                break;
+            }
+            Input::Bs => {}
+            x if x == prev => {}
+            _ => sdr.send(input.clone())?,
+        };
 
         prev = input;
     }

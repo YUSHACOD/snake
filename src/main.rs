@@ -15,8 +15,8 @@ fn main() {
     if args.len() != 1 || args[0] == "help" {
         eprintln!("Arguments required are: \t<delay> (80-750 millis)");
         eprintln!("Inputs : ");
-        eprintln!("\tSpace_Bar\t->\tPause / Start");
         eprintln!("\tEnter    \t->\tStart");
+        eprintln!("\tSpace_Bar\t->\tPause");
         eprintln!("\th / Left \t->\tLeft");
         eprintln!("\tj / Down \t->\tDown");
         eprintln!("\tk / Up   \t->\tUp");
@@ -26,9 +26,8 @@ fn main() {
         let title = "SNAKE".to_string();
         let delay = Duration::from_millis(args[0].parse().unwrap_or(100));
 
-        // Setup /////////////////////////////////////////////////////
-        // This should be the only instance
-        let mut stdout = std::io::stdout();
+        // Setup
+        let mut stdout = std::io::stdout(); // This should be the only instance
 
         // Getting the terminal dimensions
         let size = crossterm::terminal::size().expect("Failed to get the dimensions of terminal.");
@@ -38,11 +37,10 @@ fn main() {
             y_axis: (0, size.1 - 1),
         };
 
-        // Setting up the terminal ///////////////////////////////////
+        // Setting up the terminal
         window::setup(title, &mut stdout, &buffer_size);
-        //////////////////////////////////////////////////////////////
 
-        // Do stuff /////////////////////////////////////////////////
+        // Do stuff
         let (sdr, rcv) = std::sync::mpsc::channel();
 
         let game_size = Size {
@@ -52,17 +50,18 @@ fn main() {
 
         let renderer_handle = std::thread::spawn(move || game::start(rcv, game_size, delay));
         event_capturer::start(sdr)
-            .inspect_err(|_| clean_up(&mut stdout))
+            .inspect_err(|x| {
+                clean_up(&mut stdout);
+                dbg!(&x);
+            })
             .expect("Fucked Input");
 
         renderer_handle
             .join()
             .inspect_err(|_| clean_up(&mut stdout))
             .expect("renderer_failed");
-        //////////////////////////////////////////////////////////////
 
-        // Cleaning up the terminal //////////////////////////////////
+        // Cleaning up the terminal
         window::clean_up(&mut stdout);
-        //////////////////////////////////////////////////////////////
     }
 }

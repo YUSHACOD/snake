@@ -26,7 +26,7 @@ fn _message_score_box_testing(
     print_score(stdout, &score_pos, 0)
         .inspect_err(|_| window::clean_up(stdout))
         .expect("Unable to print score in score box.");
-    print_message(stdout, &message_pos, &default)
+    print_message(stdout, &message_pos, default.to_string())
         .inspect_err(|_| window::clean_up(stdout))
         .expect("Unable to display borders");
 
@@ -40,7 +40,7 @@ fn _message_score_box_testing(
                 break;
             }
 
-            print_message(stdout, &message_pos, &input)
+            print_message(stdout, &message_pos, input.to_string())
                 .inspect_err(|_| window::clean_up(stdout))
                 .expect("Failed to print message in message box");
             default = input;
@@ -103,7 +103,7 @@ pub fn start(rcv: Receiver<Input>, size: Size, delay: Duration) {
     print_score(&mut stdout, &score_pos, 0)
         .inspect_err(|_| window::clean_up(&mut stdout))
         .expect("Unable to print score in score box.");
-    print_message(&mut stdout, &message_pos, &default)
+    print_message(&mut stdout, &message_pos, default.to_string())
         .inspect_err(|_| window::clean_up(&mut stdout))
         .expect("Unable to display borders");
 
@@ -116,7 +116,7 @@ pub fn start(rcv: Receiver<Input>, size: Size, delay: Duration) {
     }
 
     // Getting initial snake in game_state and screen_buffer
-    get_init_snake(&mut game_state, &mut screen_buffer, &mut food_points);
+    game_state.get_init_snake(&mut screen_buffer, &mut food_points);
     display::display(&mut stdout, &mut screen_buffer, (2, 2))
         .inspect_err(|_| clean_up(&mut stdout))
         .expect("Failed to display screen_buffer");
@@ -134,13 +134,13 @@ pub fn start(rcv: Receiver<Input>, size: Size, delay: Duration) {
     };
 
     // Game Loop
-    while screen_buffer.frame < usize::MAX {
+    loop {
         // Start time of the game_loop
         let mut start = std::time::SystemTime::now();
 
-        // Check for quit of pause
+        // Check for quit or pause
         input = rcv.try_recv().unwrap_or(default.clone());
-        print_message(&mut stdout, &message_pos, &input)
+        print_message(&mut stdout, &message_pos, input.to_string())
             .inspect_err(|_| window::clean_up(&mut stdout))
             .expect("Unable to display borders");
         match input {
@@ -154,14 +154,31 @@ pub fn start(rcv: Receiver<Input>, size: Size, delay: Duration) {
             _ => (),
         };
 
-        // New buffer
-        create_next_frame(
+        // New frame creation
+        if !create_next_frame(
             &mut screen_buffer,
             &mut game_state,
             &input,
             (width, height),
             &mut food_points,
-        );
+        ) {
+            print_message(
+                &mut stdout,
+                &message_pos,
+                "Game Over, Press q to Quit".to_string(),
+            )
+            .inspect_err(|_| window::clean_up(&mut stdout))
+            .expect("Unable to display over message.");
+            loop {
+                match rcv.recv().unwrap_or(Input::Bs) {
+                    Input::Quit => {
+                        break;
+                    }
+                    _ => (),
+                };
+            }
+            break;
+        }
 
         // Displaying the screen_buffer and score
         print_score(&mut stdout, &score_pos, game_state.score)
