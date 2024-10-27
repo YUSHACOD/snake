@@ -165,7 +165,7 @@ pub fn start(rcv: Receiver<Input>, size: Size, delay: Duration) {
             print_message(
                 &mut stdout,
                 &message_pos,
-                "Game Over, Press q to Quit".to_string(),
+                "Game Over, At the end... The Snake Died of Loneliness, Press q to Quit".to_string(),
             )
             .inspect_err(|_| window::clean_up(&mut stdout))
             .expect("Unable to display over message.");

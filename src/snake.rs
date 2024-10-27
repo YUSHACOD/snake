@@ -86,10 +86,7 @@ impl GameState {
     }
 
     fn is_head_colliding_with_snake(&self, new_head: &(usize, usize)) -> bool {
-        match self.snake.binary_search(new_head) {
-            Ok(_) => true,
-            Err(_) => false,
-        }
+        self.snake.contains(new_head)
     }
 }
 
