@@ -48,11 +48,12 @@ impl Input {
     }
 }
 
-pub fn start(sdr: Sender<Input>) -> Result<(), SendError<Input>> {
+pub fn start(sdr: &Sender<Input>) -> Result<(), SendError<Input>> {
     let mut prev = Input::Bs;
     let mut input: Input;
 
     loop {
+<<<<<<< Updated upstream
         input = match read().unwrap_or(DEFAULT_EVENT) {
             Event::Key(key_event) => match key_event {
                 KeyEvent {
@@ -73,6 +74,20 @@ pub fn start(sdr: Sender<Input>) -> Result<(), SendError<Input>> {
                 }
                 _ => Input::Bs,
             },
+=======
+        input = match c_term
+            .read_key()
+            .inspect_err(|_| window::clean_up(&mut stdout))
+            .expect("somethings wrong")
+        {
+            console::Key::Char('q') => Input::Quit,
+            console::Key::Char('h') | console::Key::ArrowLeft => Input::Left,
+            console::Key::Char('l') | console::Key::ArrowRight => Input::Right,
+            console::Key::Char('j') | console::Key::ArrowDown => Input::Down,
+            console::Key::Char('k') | console::Key::ArrowUp => Input::Up,
+            console::Key::Char(' ') => Input::Pause,
+            console::Key::Enter => Input::Start,
+>>>>>>> Stashed changes
             _ => Input::Bs,
         };
 

@@ -49,7 +49,8 @@ fn main() {
         };
 
         let renderer_handle = std::thread::spawn(move || game::start(rcv, game_size, delay));
-        event_capturer::start(sdr)
+
+        event_capturer::start(&sdr)
             .inspect_err(|x| {
                 clean_up(&mut stdout);
                 dbg!(&x);

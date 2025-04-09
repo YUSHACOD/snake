@@ -4,6 +4,7 @@ use nanorand::{Rng, WyRand};
 use std::collections::{HashSet, VecDeque};
 
 const SNAKE_CHAR: char = '#';
+const VOID_CHAR: char = ' ';
 
 #[derive(Clone)]
 pub enum Direction {
@@ -145,7 +146,7 @@ pub fn create_next_frame(
         game_state.score += 1;
     } else {
         let trail = game_state.snake.pop_back().unwrap();
-        screen_buffer.matrix[trail.1][trail.0][current] = '.';
+        screen_buffer.matrix[trail.1][trail.0][current] = VOID_CHAR;
     }
 
     for pos in game_state.snake.iter() {

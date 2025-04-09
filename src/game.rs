@@ -84,7 +84,7 @@ pub fn start(rcv: Receiver<Input>, size: Size, delay: Duration) {
     };
 
     let mut screen_buffer = Buffers {
-        matrix: vec![vec![['.', ' ']; width]; height],
+        matrix: vec![vec![[' ', ' ']; width]; height],
         size: screen_size,
         frame: 0,
     };
